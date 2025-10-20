@@ -4,7 +4,9 @@ import { MenuSection } from "./components/MenuSection";
 import { AboutSection } from "./components/AboutSection";
 import { ContactSection } from "./components/ContactSection";
 import { CartSection } from "./components/CartSection";
+import { InventorySection } from "./components/InventorySection";
 import { Toaster } from "./components/ui/sonner";
+import { AuthProvider } from "./contexts/AuthContext";
 
 interface CartItem {
   id: string;
@@ -82,43 +84,47 @@ export default function App() {
           removeCartItem={removeCartItem}
           clearCart={clearCart}
         />;
+      case 'inventory':
+        return <InventorySection />;
       default:
         return <MenuSection onAddToCart={addToCart} />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header 
-        activeSection={activeSection} 
-        setActiveSection={setActiveSection}
-        cartItemCount={getTotalItems()}
-      />
-      <main>
-        {renderSection()}
-      </main>
-      <Toaster />
-      
-      {/* Footer */}
-      <footer className="bg-gradient-to-br from-purple-500 via-purple-600 to-blue-700 text-primary-foreground py-8 mt-16">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <div className="flex items-center justify-center space-x-2 mb-4">
-            <span className="text-2xl">🌮</span>
-            <h3 className="text-xl">Tortas Linney</h3>
+    <AuthProvider>
+      <div className="min-h-screen bg-background">
+        <Header 
+          activeSection={activeSection} 
+          setActiveSection={setActiveSection}
+          cartItemCount={getTotalItems()}
+        />
+        <main>
+          {renderSection()}
+        </main>
+        <Toaster />
+        
+        {/* Footer */}
+        <footer className="bg-gradient-to-br from-purple-500 via-purple-600 to-blue-700 text-primary-foreground py-8 mt-16">
+          <div className="max-w-6xl mx-auto px-4 text-center">
+            <div className="flex items-center justify-center space-x-2 mb-4">
+              <span className="text-2xl">🌮</span>
+              <h3 className="text-xl">Tortas Linney</h3>
+            </div>
+            <p className="text-sm text-primary-foreground/80 mb-4">
+              Tortas artesanales por Linney Flores - Estudiante UV
+            </p>
+            <div className="flex flex-wrap justify-center gap-4 text-xs text-primary-foreground/60">
+              <span>📍 Campus Mocambo, Universidad Veracruzana</span>
+              <span>📞 Contacto por WhatsApp</span>
+              <span>🚚 Entrega en Mocambo, Ingeniería y FEFUV</span>
+            </div>
+            <div className="mt-4 text-xs text-primary-foreground/60">
+              © 2024 Tortas Linney. 
+            </div>
           </div>
-          <p className="text-sm text-primary-foreground/80 mb-4">
-            Tortas artesanales por Linney Flores - Estudiante UV
-          </p>
-          <div className="flex flex-wrap justify-center gap-4 text-xs text-primary-foreground/60">
-            <span>📍 Campus Mocambo, Universidad Veracruzana</span>
-            <span>📞 Contacto por WhatsApp</span>
-            <span>🚚 Entrega en Mocambo, Ingeniería y FEFUV</span>
-          </div>
-          <div className="mt-4 text-xs text-primary-foreground/60">
-            © 2024 Tortas Linney. 
-          </div>
-        </div>
-      </footer>
-    </div>
+        </footer>
+      </div>
+    </AuthProvider>
   );
 }

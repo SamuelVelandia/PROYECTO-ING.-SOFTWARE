@@ -1,6 +1,9 @@
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, User, LogOut } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import { useState } from "react";
+import { AuthModal } from "./AuthModal";
 
 interface HeaderProps {
   activeSection: string;
@@ -9,11 +12,25 @@ interface HeaderProps {
 }
 
 export function Header({ activeSection, setActiveSection, cartItemCount = 0 }: HeaderProps) {
+  const { user, isAdmin, signOut } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
   const sections = [
     { id: 'menu', label: 'Menú' },
     { id: 'about', label: 'Nosotros' },
     { id: 'contact', label: 'Contacto' }
   ];
+
+  // Agregar inventario solo si es administrador
+  const adminSection = isAdmin ? [{ id: 'inventory', label: '📦 Inventario' }] : [];
+  const allSections = [...sections, ...adminSection];
+
+  const handleSignOut = async () => {
+    const { error } = await signOut();
+    if (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
   return (
     <header className="bg-gradient-to-br from-purple-500 via-purple-600 to-blue-700 text-primary-foreground shadow-lg">
@@ -27,7 +44,7 @@ export function Header({ activeSection, setActiveSection, cartItemCount = 0 }: H
           </div>
           
           <nav className="flex items-center space-x-1">
-            {sections.map((section) => (
+            {allSections.map((section) => (
               <Button
                 key={section.id}
                 variant={activeSection === section.id ? "secondary" : "ghost"}
@@ -40,6 +57,32 @@ export function Header({ activeSection, setActiveSection, cartItemCount = 0 }: H
               </Button>
             ))}
             
+            {/* Botón de autenticación */}
+            {user ? (
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-white/80">
+                  Hola, {user.user_metadata?.full_name || user.email?.split('@')[0]}
+                </span>
+                <Button
+                  variant="ghost"
+                  onClick={handleSignOut}
+                  className="text-white hover:bg-white/20 hover:text-white"
+                  size="sm"
+                >
+                  <LogOut className="w-4 h-4" />
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="ghost"
+                onClick={() => setShowAuthModal(true)}
+                className="text-white hover:bg-white/20 hover:text-white"
+              >
+                <User className="w-4 h-4 mr-2" />
+                Iniciar Sesión
+              </Button>
+            )}
+
             {/* Botón del carrito */}
             <Button
               variant={activeSection === 'cart' ? "secondary" : "ghost"}
@@ -62,6 +105,12 @@ export function Header({ activeSection, setActiveSection, cartItemCount = 0 }: H
           </nav>
         </div>
       </div>
+      
+      {/* Modal de autenticación */}
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)} 
+      />
     </header>
   );
 }
