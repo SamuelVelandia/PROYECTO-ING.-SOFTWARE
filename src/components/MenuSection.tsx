@@ -1,10 +1,13 @@
-
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { ProductCard } from "./ProductCard";
 import { ComboCard } from "./ComboCard";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Separator } from "./ui/separator";
+import { ProductAvailabilityService, ProductAvailability } from "../services/productAvailabilityService";
+import { Loader2, RefreshCw, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 
 // Datos de productos
 const products = {
@@ -197,15 +200,156 @@ interface MenuSectionProps {
 }
 
 export function MenuSection({ onAddToCart }: MenuSectionProps) {
+  const [loading, setLoading] = useState(true)
+  const [availability, setAvailability] = useState<Map<string, ProductAvailability>>(new Map())
+  const [refreshing, setRefreshing] = useState(false)
+
+  // Función para cargar disponibilidad
+  const loadAvailability = async (showToast = false) => {
+    try {
+      setRefreshing(true)
+      
+      // Obtener todos los IDs de productos
+      const allProductIds = [
+        ...products.tortas.map(p => p.id),
+        ...products.aguas.map(p => p.id),
+        ...products.papas.map(p => p.id)
+      ]
+      
+      // Timeout para evitar carga infinita
+      const timeoutPromise = new Promise<Map<string, ProductAvailability>>((_, reject) => {
+        setTimeout(() => reject(new Error('Timeout')), 5000)
+      })
+      
+      const availabilityPromise = ProductAvailabilityService.checkMultipleProducts(allProductIds)
+      
+      // Race entre la carga real y el timeout
+      const availabilityData = await Promise.race([availabilityPromise, timeoutPromise])
+        .catch((error) => {
+          console.warn('Error o timeout cargando disponibilidad, usando valores por defecto:', error)
+          // Crear mapa con todos disponibles como fallback
+          const fallbackMap = new Map<string, ProductAvailability>()
+          allProductIds.forEach(id => {
+            fallbackMap.set(id, {
+              productId: id,
+              isAvailable: true,
+              missingIngredients: [],
+              lowStockIngredients: []
+            })
+          })
+          return fallbackMap
+        })
+      
+      setAvailability(availabilityData)
+      
+      if (showToast) {
+        toast.success('✅ Disponibilidad actualizada')
+      }
+    } catch (error) {
+      console.error('Error loading availability:', error)
+      // No mostrar error al usuario, simplemente asumir todo disponible
+      const fallbackMap = new Map<string, ProductAvailability>()
+      const allProductIds = [
+        ...products.tortas.map(p => p.id),
+        ...products.aguas.map(p => p.id),
+        ...products.papas.map(p => p.id)
+      ]
+      allProductIds.forEach(id => {
+        fallbackMap.set(id, {
+          productId: id,
+          isAvailable: true,
+          missingIngredients: [],
+          lowStockIngredients: []
+        })
+      })
+      setAvailability(fallbackMap)
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }
+
+  // Cargar disponibilidad al montar el componente
+  useEffect(() => {
+    loadAvailability()
+  }, [])
+
+  // Función auxiliar para obtener disponibilidad de un producto
+  const getProductAvailability = (productId: string): ProductAvailability => {
+    return availability.get(productId) || {
+      productId,
+      isAvailable: true,
+      missingIngredients: [],
+      lowStockIngredients: []
+    }
+  }
+
+  // Contar productos disponibles y no disponibles
+  const availableCount = Array.from(availability.values()).filter(a => a.isAvailable).length
+  const unavailableCount = Array.from(availability.values()).filter(a => !a.isAvailable).length
+
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="flex flex-col items-center justify-center py-16">
+          <Loader2 className="w-12 h-12 text-purple-600 animate-spin mb-4" />
+          <p className="text-muted-foreground">Cargando menú y verificando disponibilidad...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="mb-8">
-        <h2 className="text-3xl mb-4">Nuestro Menú</h2>
-        <p className="text-muted-foreground">
-          Descubre nuestras deliciosas tortas artesanales, aguas frescas y papas crujientes.
-          Todos nuestros ingredientes son frescos y de la mejor calidad.
-        </p>
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <h2 className="text-3xl mb-4">Nuestro Menú</h2>
+            <p className="text-muted-foreground mb-4">
+              Descubre nuestras deliciosas tortas artesanales, aguas frescas y papas crujientes.
+              Todos nuestros ingredientes son frescos y de la mejor calidad.
+            </p>
+            
+            {/* Indicadores de disponibilidad */}
+            <div className="flex flex-wrap gap-3 items-center">
+              <Badge variant="outline" className="bg-green-50 border-green-200 text-green-700">
+                ✅ {availableCount} productos disponibles
+              </Badge>
+              {unavailableCount > 0 && (
+                <Badge variant="outline" className="bg-orange-50 border-orange-200 text-orange-700">
+                  ⚠️ {unavailableCount} productos sin stock
+                </Badge>
+              )}
+            </div>
+          </div>
+          
+          {/* Botón de refrescar */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => loadAvailability(true)}
+            disabled={refreshing}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            Actualizar
+          </Button>
+        </div>
+        
+        {/* Alerta si hay muchos productos sin stock */}
+        {unavailableCount > 3 && (
+          <div className="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-lg flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm text-orange-800 font-medium">
+                Varios productos sin disponibilidad
+              </p>
+              <p className="text-xs text-orange-700 mt-1">
+                Algunos ingredientes están agotados. El inventario se actualiza constantemente.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
 
@@ -243,13 +387,17 @@ export function MenuSection({ onAddToCart }: MenuSectionProps) {
               Nuestras tortas están hechas con pan fresco y los mejores ingredientes.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products.tortas.map((product) => (
-                <ProductCard 
-                  key={product.id} 
-                  product={product} 
-                  onAddToCart={onAddToCart}
-                />
-              ))}
+              {products.tortas.map((product) => {
+                const productAvailability = getProductAvailability(product.id)
+                return (
+                  <ProductCard 
+                    key={product.id} 
+                    product={product} 
+                    onAddToCart={onAddToCart}
+                    availability={productAvailability}
+                  />
+                )
+              })}
             </div>
           </div>
         </TabsContent>
@@ -261,13 +409,17 @@ export function MenuSection({ onAddToCart }: MenuSectionProps) {
               Refréscate con nuestras aguas naturales preparadas diariamente.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products.aguas.map((product) => (
-                <ProductCard 
-                  key={product.id} 
-                  product={product} 
-                  onAddToCart={onAddToCart}
-                />
-              ))}
+              {products.aguas.map((product) => {
+                const productAvailability = getProductAvailability(product.id)
+                return (
+                  <ProductCard 
+                    key={product.id} 
+                    product={product} 
+                    onAddToCart={onAddToCart}
+                    availability={productAvailability}
+                  />
+                )
+              })}
             </div>
           </div>
         </TabsContent>
@@ -279,13 +431,17 @@ export function MenuSection({ onAddToCart }: MenuSectionProps) {
               Perfectas para acompañar tu torta o como botana.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products.papas.map((product) => (
-                <ProductCard 
-                  key={product.id} 
-                  product={product} 
-                  onAddToCart={onAddToCart}
-                />
-              ))}
+              {products.papas.map((product) => {
+                const productAvailability = getProductAvailability(product.id)
+                return (
+                  <ProductCard 
+                    key={product.id} 
+                    product={product} 
+                    onAddToCart={onAddToCart}
+                    availability={productAvailability}
+                  />
+                )
+              })}
             </div>
           </div>
         </TabsContent>
