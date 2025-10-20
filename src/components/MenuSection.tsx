@@ -138,58 +138,56 @@ const products = {
 const combos = [
   {
     id: 'combo-1',
-    name: 'Combo Familiar',
-    description: 'Perfecto para compartir en familia',
+    name: 'Combo de Amigas',
+    description: '¡Perfecto para compartir con tus mejores amigas! 💕',
     items: [
-      { name: 'Torta de Carne Ahumada', quantity: 2 },
-      { name: 'Papas Fritas', quantity: 2 },
+      { name: 'Torta de Jamón', quantity: 2 },
+      { name: 'Papas Fritas', quantity: 1 },
       { name: 'Agua de Horchata', quantity: 2 }
     ],
-    originalPrice: 290,
-    comboPrice: 250,
-    savings: 40,
+    originalPrice: 180,
+    comboPrice: 150,
+    savings: 30,
     imageUrl: 'https://images.unsplash.com/photo-1581975636249-ff529eba3c28?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtZXhpY2FuJTIwdG9ydGElMjBzYW5kd2ljaCUyMGNvbWJvJTIwZmFtaWx5JTIwbWVhbHxlbnwxfHx8fDE3NTgxMTU0NDd8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral'
   },
   {
     id: 'combo-2',
-    name: 'Combo Individual',
-    description: 'La combinación perfecta para una persona',
+    name: 'Combo Estudiante',
+    description: 'El básico que nunca falla para el presupuesto universitario 📚',
     items: [
       { name: 'Torta a elegir', quantity: 1 },
-      { name: 'Papas Fritas', quantity: 1 },
       { name: 'Agua a elegir', quantity: 1 }
     ],
-    originalPrice: 140,
-    comboPrice: 120,
-    savings: 20,
+    originalPrice: 95,
+    comboPrice: 80,
+    savings: 15,
     imageUrl: 'https://images.unsplash.com/photo-1667515343519-05deb1a7567b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtZXhpY2FuJTIwc2FuZHdpY2glMjBpbmRpdmlkdWFsJTIwY29tYm8lMjBtZWFsfGVufDF8fHx8MTc1ODExNTQ1MHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral'
   },
   {
     id: 'combo-3',
-    name: 'Combo Ejecutivo',
-    description: 'Rápido y nutritivo para tu día de trabajo',
+    name: 'Combo Entre Clases',
+    description: 'Rápido y barato para no llegar tarde a la siguiente materia ⏰',
     items: [
       { name: 'Torta de Jamón', quantity: 1 },
       { name: 'Agua de Jamaica', quantity: 1 }
     ],
-    originalPrice: 85,
-    comboPrice: 75,
+    originalPrice: 75,
+    comboPrice: 65,
     savings: 10,
     imageUrl: 'https://images.unsplash.com/photo-1730878423239-0fd430bbac37?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtZXhpY2FuJTIwaGFtJTIwc2FuZHdpY2glMjBidXNpbmVzcyUyMGx1bmNofGVufDF8fHx8MTc1ODExNTQ1NHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral'
   },
   {
     id: 'combo-4',
-    name: 'Combo Mega',
-    description: 'Para los que tienen mucha hambre',
+    name: 'Combo Nocturno',
+    description: 'Para esas noches de estudio intenso y hambre extrema 🌙',
     items: [
       { name: 'Torta Chichimeca', quantity: 1 },
       { name: 'Papas Gajo', quantity: 1 },
-      { name: 'Agua de Tamarindo', quantity: 1 },
-      { name: 'Queso extra', quantity: 1 }
+      { name: 'Agua de Tamarindo', quantity: 1 }
     ],
-    originalPrice: 155,
-    comboPrice: 135,
-    savings: 20,
+    originalPrice: 125,
+    comboPrice: 110,
+    savings: 15,
     imageUrl: 'https://images.unsplash.com/photo-1726514734441-dde9eabd9208?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXJnZSUyMG1leGljYW4lMjBmb29kJTIwcGxhdHRlciUyMG1lZ2ElMjBjb21ib3xlbnwxfHx8fDE3NTgxMTU0NTd8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral'
   }
 ];
@@ -222,9 +220,9 @@ export function MenuSection({ onAddToCart }: MenuSectionProps) {
 
         <TabsContent value="combos" className="space-y-6">
           <div>
-            <h3 className="text-xl mb-4">Combos Especiales</h3>
+            <h3 className="text-xl mb-4">Combos para Estudiantes 💸</h3>
             <p className="text-muted-foreground mb-6">
-              Ahorra dinero con nuestros combos diseñados para diferentes necesidades.
+              ¡Combos súper económicos diseñados especialmente para tu vida universitaria! Ahorra dinero y come rico.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
               {combos.map((combo) => (
