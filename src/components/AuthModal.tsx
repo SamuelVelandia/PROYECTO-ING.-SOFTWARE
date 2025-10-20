@@ -32,18 +32,41 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setLoading(true)
 
     try {
-      // Solo iniciar sesión (sin registro)
-      const { error } = await signIn(formData.email, formData.password)
+      console.log('Starting sign in...')
+      
+      // Crear promesa con timeout de 10 segundos
+      const signInPromise = signIn(formData.email, formData.password)
+      const timeoutPromise = new Promise<{ error: any }>((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout')), 10000)
+      )
+      
+      // Race entre signIn y timeout
+      const result = await Promise.race([signInPromise, timeoutPromise])
+        .catch((err) => {
+          console.error('SignIn timeout or error:', err)
+          return { error: { message: 'La operación tardó demasiado. Por favor intenta de nuevo.' } }
+        })
+      
+      const { error } = result
+      
       if (error) {
+        console.error('Sign in error:', error)
         toast.error('Error al iniciar sesión: ' + error.message)
-      } else {
-        toast.success('¡Bienvenido Administrador!')
-        onClose()
-        resetForm()
+        setLoading(false)
+        return
       }
+      
+      console.log('Sign in successful!')
+      toast.success('¡Bienvenido Administrador!')
+      
+      // Cerrar modal y resetear
+      setLoading(false)
+      onClose()
+      resetForm()
+      
     } catch (error) {
+      console.error('Exception during sign in:', error)
       toast.error('Error inesperado. Intenta de nuevo.')
-    } finally {
       setLoading(false)
     }
   }
@@ -161,8 +184,13 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             <div className="mt-4 text-center">
               <Button 
                 variant="outline" 
-                onClick={onClose} 
+                onClick={() => {
+                  setLoading(false)
+                  resetForm()
+                  onClose()
+                }} 
                 className="w-full h-11 border-2 hover:bg-gray-50 transition-colors"
+                disabled={loading}
               >
                 ❌ Cancelar
               </Button>

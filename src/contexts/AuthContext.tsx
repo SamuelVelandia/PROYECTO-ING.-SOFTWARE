@@ -108,6 +108,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut()
+    
+    // Resetear estados locales inmediatamente
+    if (!error) {
+      setUser(null)
+      setSession(null)
+      setIsAdmin(false)
+    }
+    
     return { error }
   }
 

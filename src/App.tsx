@@ -5,6 +5,7 @@ import { AboutSection } from "./components/AboutSection";
 import { ContactSection } from "./components/ContactSection";
 import { CartSection } from "./components/CartSection";
 import { InventorySection } from "./components/InventorySection";
+import { ProductsManagementSection } from "./components/ProductsManagementSection";
 import { Toaster } from "./components/ui/sonner";
 import { AuthProvider } from "./contexts/AuthContext";
 
@@ -84,6 +85,8 @@ export default function App() {
           removeCartItem={removeCartItem}
           clearCart={clearCart}
         />;
+      case 'products-management':
+        return <ProductsManagementSection />;
       case 'inventory':
         return <InventorySection />;
       default:
